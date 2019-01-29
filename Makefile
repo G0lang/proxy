@@ -40,16 +40,14 @@ vars:
 
 # Build app 
 build:
-	@ echo "CGO:" ${CGO_ENABLED}
-	@ echo "GOS:" ${GOOS}
-	@ echo "GOA:" ${GOARCH}
-	@ go build -ldflags  " -w -s \
+	@echo "Building Project Binary To ./bin"
+	@GOARC=${GOARCH} GOOS=${GOOS} CGO_ENABLED=${CGO_ENABLED} go build -ldflags  " -w -s \
     -X main.gver=${GVER} \
     -X main.hash=${LONGHASH} \
     -X main.short=${SHORTHASH} \
     -X main.date=${COMMITDATE} \
     -X main.count=${COMMITCOUNT} \
-    -X main.build=${BUILDDATE}" -a -o app .
+    -X main.build=${BUILDDATE}" -a -o bin/proxy .
 
 # Run app
 run:
@@ -59,13 +57,15 @@ run:
     -X main.short=${SHORTHASH} \
     -X main.date=${COMMITDATE} \
     -X main.count=${COMMITCOUNT} \
-    -X main.build=${BUILDDATE}" .
+    -X main.build=${BUILDDATE}" . 
 
-# Run test
-test:
+# Run Test
+coverage:
 	@go test ./... -cover
 
-
+# Run Test
+test:
+	@go test ./...
 
 # Build docker image.
 ibuild:
@@ -79,7 +79,7 @@ ibuild-nc:
 
 # Run docker image.
 irun:
-	@ docker run -p 8080:8080 ${LATEST}
+	@ docker run -p 8000:8000 ${LATEST}
 
 # Clean Docker.
 iclean:
