@@ -1,6 +1,6 @@
 # proxy
 
-## Install
+## Install & RUN PROJECT
 ```sh
 go run main
 ```
