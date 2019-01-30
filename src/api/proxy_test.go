@@ -20,7 +20,7 @@ func TestProxyGet(t *testing.T) {
 	}
 }
 
-func TestProxyPOST(t *testing.T) {
+func TestProxyPost(t *testing.T) {
 	req, err := http.NewRequest("POST", "/proxy/", nil)
 	if err != nil {
 		t.Fatal(err)

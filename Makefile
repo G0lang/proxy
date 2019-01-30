@@ -11,6 +11,8 @@ GO111MODULE	:= on
 IMGNAME		:= proxy
 IMGTAG		:= ${IMGNAME}:${SHORTHASH}
 LATEST		:= ${IMGNAME}:latest
+PORT		:= 8000
+
 
 # Run commands with the debugger. (default: false)
 DEBUG ?= false
@@ -42,30 +44,32 @@ vars:
 build:
 	@echo "Building Project Binary To ./bin"
 	@GOARC=${GOARCH} GOOS=${GOOS} CGO_ENABLED=${CGO_ENABLED} go build -ldflags  " -w -s \
-    -X main.gver=${GVER} \
-    -X main.hash=${LONGHASH} \
-    -X main.short=${SHORTHASH} \
-    -X main.date=${COMMITDATE} \
-    -X main.count=${COMMITCOUNT} \
-    -X main.build=${BUILDDATE}" -a -o bin/proxy .
+    -X github.com/g0lang/proxy/src/config.gver=${GVER} \
+    -X github.com/g0lang/proxy/src/config.hash=${LONGHASH} \
+    -X github.com/g0lang/proxy/src/config.short=${SHORTHASH} \
+    -X github.com/g0lang/proxy/src/config.date=${COMMITDATE} \
+    -X github.com/g0lang/proxy/src/config.count=${COMMITCOUNT} \
+	-X github.com/g0lang/proxy/src/config.port=${PORT} \
+    -X github.com/g0lang/proxy/src/config.build=${BUILDDATE}" -a -o bin/proxy .
 
 # Run app
 run:
-	@go run -ldflags  " \
-    -X main.gver=${GVER} \
-    -X main.hash=${LONGHASH} \
-    -X main.short=${SHORTHASH} \
-    -X main.date=${COMMITDATE} \
-    -X main.count=${COMMITCOUNT} \
-    -X main.build=${BUILDDATE}" . 
+	@ go run -ldflags  " \
+	-X github.com/g0lang/proxy/src/config.gver=${GVER} \
+    -X github.com/g0lang/proxy/src/config.hash=${LONGHASH} \
+    -X github.com/g0lang/proxy/src/config.short=${SHORTHASH} \
+    -X github.com/g0lang/proxy/src/config.date=${COMMITDATE} \
+    -X github.com/g0lang/proxy/src/config.count=${COMMITCOUNT} \
+	-X github.com/g0lang/proxy/src/config.port=${PORT} \
+    -X github.com/g0lang/proxy/src/config.build=${BUILDDATE}" . 
 
 # Run Test
 coverage:
-	@go test ./... -cover
+	@ go test ./... -cover
 
 # Run Test
 test:
-	@go test ./...
+	@ go test ./...
 
 # Build docker image.
 ibuild:

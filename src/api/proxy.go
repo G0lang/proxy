@@ -11,52 +11,32 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func rewriter(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pathReq := r.RequestURI
-		if strings.HasPrefix(pathReq, "/proxy/") {
-			pe := url.PathEscape(strings.TrimLeft(pathReq, "/proxy/"))
-			r.URL.Path = "/proxy/" + pe
-			r.URL.RawQuery = ""
-		}
-		h.ServeHTTP(w, r)
-	})
-}
-
-func Run() {
-	router := mux.NewRouter()
-	router.HandleFunc("/proxy/{url}", proxyGet).Methods("GET")
-	router.HandleFunc("/proxy/{url}", proxyPost).Methods("POST")
-	log.Println("Starting Server On Port 8000")
-	http.ListenAndServe(":8000", rewriter(router))
-
-}
-
 func proxyGet(w http.ResponseWriter, r *http.Request) {
-	originalURL := getUrlFromRequest(r)
-	if originalURL == "" {
-		fmt.Fprintf(w, "Please Enter Url")
-	} else {
-		req := buildRequest(originalURL, "GET", nil, false)
-		body := makeRequest(req)
-		fmt.Fprint(w, string(body))
-	}
-}
-
-func proxyPost(w http.ResponseWriter, r *http.Request) {
-	originalURL := getUrlFromRequest(r)
+	originalURL := getURLFromRequest(r)
 	if originalURL == "" {
 		fmt.Fprintf(w, "Please Enter Url")
 		return
-	} else {
-		r.ParseForm()
-		req := buildRequest(originalURL, "POST", r.Form, true)
-		body := makeRequest(req)
-		fmt.Fprint(w, string(body))
 	}
+	req := buildRequest(originalURL, "GET", nil, false)
+	body := makeRequest(req)
+	fmt.Fprint(w, string(body))
+
 }
 
-func getUrlFromRequest(r *http.Request) string {
+func proxyPost(w http.ResponseWriter, r *http.Request) {
+	originalURL := getURLFromRequest(r)
+	if originalURL == "" {
+		fmt.Fprintf(w, "Please Enter Url")
+		return
+	}
+	r.ParseForm()
+	req := buildRequest(originalURL, "POST", r.Form, true)
+	body := makeRequest(req)
+	fmt.Fprint(w, string(body))
+
+}
+
+func getURLFromRequest(r *http.Request) string {
 	vars := mux.Vars(r)
 	u := vars["url"]
 	originalURL, err := url.PathUnescape(u)
