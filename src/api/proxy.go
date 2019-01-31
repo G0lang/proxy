@@ -29,12 +29,16 @@ func proxyGet(w http.ResponseWriter, r *http.Request) {
 
 	originalURL, err := getURLFromRequest(r)
 	if err != nil {
-		fmt.Fprintf(w, "Please Enter Url Error: %v", err)
+		fmt.Fprintf(w, "%v", err)
 		return
 	}
 
 	req := buildRequest(originalURL, "GET", nil, false)
-	body := makeRequest(req)
+	body, err := makeRequest(req)
+	if err != nil {
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
 	elapsed := time.Since(start)
 	log.Printf("Preparing request and get back respose took %s", elapsed)
 
@@ -48,13 +52,18 @@ func proxyPost(w http.ResponseWriter, r *http.Request) {
 
 	originalURL, err := getURLFromRequest(r)
 	if err != nil {
-		fmt.Fprintf(w, "Not Valid URL Error:%v", err)
+		fmt.Fprintf(w, "%v", err)
 		return
 	}
 	r.ParseForm()
 
 	req := buildRequest(originalURL, "POST", r.Form, true)
-	body := makeRequest(req)
+	body, err := makeRequest(req)
+
+	if err != nil {
+		fmt.Fprintf(w, "%v", err)
+		return
+	}
 	elapsed := time.Since(start)
 	log.Printf("preparing request amd get back respose took %s", elapsed)
 
@@ -66,13 +75,15 @@ func getURLFromRequest(r *http.Request) (string, error) {
 	u := vars["url"]
 	originalURL, err := url.PathUnescape(u)
 	if err != nil {
-		return "", MyError{time.Now(), "Not valid URL"}
+		return "", MyError{time.Now(), fmt.Sprintf("\nNot valid url:%v", err)}
 	}
-	_, err = url.ParseRequestURI(originalURL)
-	if err != nil {
-		return "", MyError{time.Now(), "Not valid URL" + u}
+	url, err := url.Parse(originalURL)
+
+	if url.Scheme == "" {
+		url.Scheme = "http"
 	}
-	return originalURL, nil
+
+	return url.String(), nil
 }
 
 func buildRequest(url, method string, data url.Values, urlencoded bool) *http.Request {
@@ -87,19 +98,19 @@ func buildRequest(url, method string, data url.Values, urlencoded bool) *http.Re
 	return req
 }
 
-func makeRequest(req *http.Request) string {
+func makeRequest(req *http.Request) (string, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
 	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Println("Can Not Get Any Feedback From Host Error:", err)
+		return "", MyError{time.Now(), fmt.Sprintf("\nCan Not Get Any Feedback From Host Error:%v", err)}
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("Can Not Parse The Body Error:", err)
+		return "", MyError{time.Now(), fmt.Sprintf("\nCan Not Parse The Body Error:%v", err)}
 	}
-	return string(body)
+	return string(body), nil
 }
