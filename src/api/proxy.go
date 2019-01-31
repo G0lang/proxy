@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -65,15 +66,11 @@ func getURLFromRequest(r *http.Request) (string, error) {
 	u := vars["url"]
 	originalURL, err := url.PathUnescape(u)
 	if err != nil {
-		return "", MyError{time.Now(), "1"}
+		return "", MyError{time.Now(), "Not valid URL"}
 	}
 	_, err = url.ParseRequestURI(originalURL)
 	if err != nil {
-		return "", MyError{time.Now(), "asdaad" + u}
-	}
-	url, err := url.Parse(originalURL)
-	if url.Scheme == "https" {
-		return "", MyError{time.Now(), "3"}
+		return "", MyError{time.Now(), "Not valid URL" + u}
 	}
 	return originalURL, nil
 }
@@ -91,7 +88,10 @@ func buildRequest(url, method string, data url.Values, urlencoded bool) *http.Re
 }
 
 func makeRequest(req *http.Request) string {
-	client := &http.Client{}
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+	client := &http.Client{Transport: tr}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Println("Can Not Get Any Feedback From Host Error:", err)
