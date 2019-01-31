@@ -69,7 +69,7 @@ coverage:
 
 # Run Test
 test:
-	@ go test ./...
+	@ go test -v ./...
 
 # Build docker image.
 ibuild:

@@ -12,13 +12,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// MyError is an error implementation that includes a time and message.
+type MyError struct {
+	When time.Time
+	What string
+}
+
+func (e MyError) Error() string {
+	return fmt.Sprintf("%v: %v", e.When, e.What)
+}
+
 func proxyGet(w http.ResponseWriter, r *http.Request) {
-	originalURL := getURLFromRequest(r)
-	if originalURL == "" {
-		fmt.Fprintf(w, "Please Enter Url")
+
+	start := time.Now()
+
+	originalURL, err := getURLFromRequest(r)
+	if err != nil {
+		fmt.Fprintf(w, "Please Enter Url Error: %v", err)
 		return
 	}
-	start := time.Now()
+
 	req := buildRequest(originalURL, "GET", nil, false)
 	body := makeRequest(req)
 	elapsed := time.Since(start)
@@ -29,14 +42,16 @@ func proxyGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func proxyPost(w http.ResponseWriter, r *http.Request) {
-	originalURL := getURLFromRequest(r)
-	if originalURL == "" {
-		fmt.Fprintf(w, "Please Enter Url")
+
+	start := time.Now()
+
+	originalURL, err := getURLFromRequest(r)
+	if err != nil {
+		fmt.Fprintf(w, "Not Valid URL Error:%v", err)
 		return
 	}
 	r.ParseForm()
 
-	start := time.Now()
 	req := buildRequest(originalURL, "POST", r.Form, true)
 	body := makeRequest(req)
 	elapsed := time.Since(start)
@@ -45,20 +60,22 @@ func proxyPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(body))
 }
 
-func getURLFromRequest(r *http.Request) string {
+func getURLFromRequest(r *http.Request) (string, error) {
 	vars := mux.Vars(r)
 	u := vars["url"]
 	originalURL, err := url.PathUnescape(u)
 	if err != nil {
-		log.Println("Can Not Build Url")
-		return ""
+		return "", MyError{time.Now(), "1"}
 	}
 	_, err = url.ParseRequestURI(originalURL)
 	if err != nil {
-		log.Println("Url Not correct")
-		return ""
+		return "", MyError{time.Now(), "asdaad" + u}
 	}
-	return originalURL
+	url, err := url.Parse(originalURL)
+	if url.Scheme == "https" {
+		return "", MyError{time.Now(), "3"}
+	}
+	return originalURL, nil
 }
 
 func buildRequest(url, method string, data url.Values, urlencoded bool) *http.Request {

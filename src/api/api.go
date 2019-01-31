@@ -18,13 +18,16 @@ func Run() {
 		PORT = "8000"
 	}
 
-	// init router
-	router := mux.NewRouter()
-	router.HandleFunc("/proxy/{url}", proxyGet).Methods("GET")
-	router.HandleFunc("/proxy/{url}", proxyPost).Methods("POST")
-	router.HandleFunc("/version", versionGet).Methods("GET")
-
 	// init http server
 	log.Println("Starting Server On Port:", PORT)
-	log.Fatal(http.ListenAndServe(":"+PORT, rewriter(router)))
+	log.Fatal(http.ListenAndServe(":"+PORT, rewriter(Router())))
+}
+
+// Router return gorilla mux router
+func Router() *mux.Router {
+	r := mux.NewRouter()
+	r.HandleFunc("/proxy/{url}", proxyGet).Methods("GET")
+	r.HandleFunc("/proxy/{url}", proxyPost).Methods("POST")
+	r.HandleFunc("/version", versionGet).Methods("GET")
+	return r
 }
