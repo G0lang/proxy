@@ -9,5 +9,6 @@ go run main
  - [ ] add test 
  - [ ] problem with https !  parse url and accept only http
  - [ ] use context
- - [ ] containerized
- - [ ] add Makefile
+ - [x] containerized
+ - [x] add Makefile
+ - [x] log how long took prepare request and send and get feedback

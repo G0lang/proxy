@@ -12,13 +12,15 @@ RUN GBUILD=$(go version | sed -e "s/ /-/g") && \
     COMMITDATE=$(git log -n1 --pretty="format:%cd"| sed -e "s/ /-/g") && \
     COMMITCOUNT=$(git rev-list HEAD --count| cat) && \
     BUILDDATE=$(date| sed -e "s/ /-/g") && \
+    PORT=8000 && \
     CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags  " -w -s \
-    -X main.gbuild=$GBUILD \
-    -X main.hash=$LONGHASH \
-    -X main.short=$SHORTHASH \
-    -X main.date=$COMMITDATE \
-    -X main.count=$COMMITCOUNT \
-    -X main.build=$BUILDDATE" -a -o proxy .
+    -X github.com/g0lang/proxy/src/config.gbuild=$GBUILD \
+    -X github.com/g0lang/proxy/src/config.hash=$LONGHASH \
+    -X github.com/g0lang/proxy/src/config.short=$SHORTHASH \
+    -X github.com/g0lang/proxy/src/config.date=$COMMITDATE \
+    -X github.com/g0lang/proxy/src/config.count=$COMMITCOUNT \
+    -X github.com/g0lang/proxy/src/config.port=$PORT \
+    -X github.com/g0lang/proxy/src/config.build=$BUILDDATE" -a -o proxy .
 
 # Final stage
 FROM gcr.io/distroless/base

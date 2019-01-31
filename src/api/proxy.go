@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -17,8 +18,12 @@ func proxyGet(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Please Enter Url")
 		return
 	}
+	start := time.Now()
 	req := buildRequest(originalURL, "GET", nil, false)
 	body := makeRequest(req)
+	elapsed := time.Since(start)
+	log.Printf("Preparing request and get back respose took %s", elapsed)
+
 	fmt.Fprint(w, string(body))
 
 }
@@ -30,10 +35,14 @@ func proxyPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	r.ParseForm()
+
+	start := time.Now()
 	req := buildRequest(originalURL, "POST", r.Form, true)
 	body := makeRequest(req)
-	fmt.Fprint(w, string(body))
+	elapsed := time.Since(start)
+	log.Printf("preparing request amd get back respose took %s", elapsed)
 
+	fmt.Fprint(w, string(body))
 }
 
 func getURLFromRequest(r *http.Request) string {
